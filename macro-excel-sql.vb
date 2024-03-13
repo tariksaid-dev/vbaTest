@@ -13,7 +13,7 @@ Sub GenerarInforme()
     Dim wsEstadisticas As Worksheet
     
     ' 1. Cargar archivos excel
-    Set rutaOriginalData = "./Cuestionario SQL (Producción).xlsx"
+    rutaOriginalData = "C:\Users\tarik.said\Desktop\vbaTest\Cuestionario SQL (Producción).xlsx"
     
     Set wsTemplate = ThisWorkbook.Sheets("answer template")
     
@@ -39,7 +39,7 @@ Sub GenerarInforme()
     wbNuevo.Sheets(2).Name = "Estadísticas"
     
     ' 7. Guardar el nuevo archivo en la misma ruta
-    wbNuevo.SaveAs ".\Archivo.xlsx"
+    wbNuevo.SaveAs "C:\Users\tarik.said\Desktop\vbaTest\Resultados.xlsx"
     
     wbNuevo.Close
     wbOriginalData.Close SaveChanges:=False
