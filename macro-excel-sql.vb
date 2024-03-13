@@ -1,25 +1,39 @@
 
 Sub GenerarInforme()
     ' id As Long
-    Dim wbOriginalData As Workbook ' QUITAR?
+    Dim wbOriginalData As Workbook, wbNuevo As Workbook
+    Dim wsOriginalData As Worksheet, wsTemplate As Worksheet, wsPreguntasRespuestas As Worksheet, wsEstadisticas As Worksheet
     
-    Dim wsTemplate As Worksheet
-    Dim wsOriginalData As Worksheet
     Dim rutaOriginalData As String
+    Dim idUsuario As Variant
+    Dim encontrado As Range
     
-    
-    Dim wbNuevo As Workbook
-    Dim wsPreguntasRespuestas As Worksheet
-    Dim wsEstadisticas As Worksheet
-    
+      ' Solicitar al usuario que introduzca el ID
+    idUsuario = Application.InputBox("Introduce el ID para buscar:", "Buscar por ID", Type:=1)
+
+    ' Verificar si el usuario presionó Cancelar en el InputBox
+    If idUsuario = False Then
+        MsgBox "Operación cancelada por el usuario.", vbExclamation
+        Exit Sub
+    End If
+
     ' 1. Cargar archivos excel
     rutaOriginalData = "C:\Users\tarik.said\Desktop\vbaTest\Cuestionario SQL (Producción).xlsx"
     
     Set wsTemplate = ThisWorkbook.Sheets("answer template")
-    
     Set wbOriginalData = Workbooks.Open(rutaOriginalData)
-    Set wsOriginalData = wbOriginalData.Sheets(1) ' ! TAL VEZ FALLE
-    
+    Set wsOriginalData = wbOriginalData.Sheets(1) 
+
+    Set encontrado = wsOriginalData.Columns(1).Find(What:=idUsuario, LookIn:=xlValues, LookAt:=xlWhole)
+
+      ' Verificar si se encontró el ID
+    If Not encontrado Is Nothing Then
+        filaID = encontrado.Row
+    Else
+        MsgBox "El ID que has introducido no existe.", vbExclamation
+        wbOriginalData.Close SaveChanges:=False
+        Exit Sub
+    End If
     
     ' 2. Formatear los datos originales y obtener una tabla con las preguntas y respuestas
     Set wsPreguntasRespuestas = FormatearTablaPreguntasRespuestas(wsOriginalData)
