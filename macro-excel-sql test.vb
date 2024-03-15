@@ -105,9 +105,42 @@ Sub GenerarInformeConID()
     
     ' Dibujar gráfico
     
-    ' Pintar pequeño cuadro resumen
+    filaActualResumen = filaActualResumen + 10 ' simulamos que se coloca el gráfico
+
+    ' ####### Agregar el cuadro resumen #######
+    filaActualResumen = filaActualResumen + 2 ' Fila en blanco de espacio entre el gráfico y el cuadro resumen
+
+    wsResumen.Cells(filaActualResumen, 5).Value = "Puntuación final"
+    wsResumen.Cells(filaActualResumen, 6).Value = "100%" ' ! HARDCODED
+
+    filaActualResumen = filaActualResumen + 1
+    wsResumen.Cells(filaActualResumen, 5).Value = "Nivel"
+    wsResumen.Cells(filaActualResumen, 6).Value = "3 - Avanzado" ' ! HARDCODED
+
+    ' ####### Rellenar tabla #######
+    filaActualResumen = filaActualResumen + 2 ' Fila en blanco de espacio entre el cuadro resumen y la tabla
+
+    Dim niveles As Variant
+    ' Definir los niveles
+    niveles = Array("Basic", "Intermediate", "Advanced", "Total")
+
+    ' Insertar títulos
+    wsResumen.Cells(filaActualResumen, 2).Value = "Dificultad"
+    wsResumen.Cells(filaActualResumen, 3).Value = "Total preguntas"
+    wsResumen.Cells(filaActualResumen, 4).Value = "Aciertos"
+    wsResumen.Cells(filaActualResumen, 5).Value = "Errores"
+    wsResumen.Cells(filaActualResumen, 6).Value = "% aciertos"
+    wsResumen.Cells(filaActualResumen, 7).Value = "Killer answers"
+    wsResumen.Cells(filaActualResumen, 8).Value = "% Killer answers"
     
-    ' Rellenar tabla
+    filaActualResumen = filaActualResumen + 1
+    
+    ' Insertar niveles
+    For i = LBound(niveles) To UBound(niveles)
+        wsResumen.Cells(i + filaActualResumen, 2).Value = niveles(i)
+    Next i
+
+    wsResumen.Columns.AutoFit
 
     ' ##### Guardar archivo resultante #####
     
