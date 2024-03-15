@@ -120,18 +120,17 @@ Sub GenerarInformeConID()
     ' ####### Rellenar tabla #######
     filaActualResumen = filaActualResumen + 2 ' Fila en blanco de espacio entre el cuadro resumen y la tabla
 
+    Dim cabeceraResumen As Variant
     Dim niveles As Variant
-    ' Definir los niveles
+
+    cabeceraResumen = Array("Dificultad", "Total preguntas", "Aciertos", "Errores", "% aciertos", "Killer answers", "% Killer answers")
     niveles = Array("Basic", "Intermediate", "Advanced", "Total")
 
-    ' Insertar títulos
-    wsResumen.Cells(filaActualResumen, 2).Value = "Dificultad"
-    wsResumen.Cells(filaActualResumen, 3).Value = "Total preguntas"
-    wsResumen.Cells(filaActualResumen, 4).Value = "Aciertos"
-    wsResumen.Cells(filaActualResumen, 5).Value = "Errores"
-    wsResumen.Cells(filaActualResumen, 6).Value = "% aciertos"
-    wsResumen.Cells(filaActualResumen, 7).Value = "Killer answers"
-    wsResumen.Cells(filaActualResumen, 8).Value = "% Killer answers"
+    ' Insertar títulos de la cabecera
+    
+    For i = LBound(cabeceraResumen) To UBound(cabeceraResumen)
+        wsResumen.Cells(filaActualResumen, i + 2).Value = cabeceraResumen(i)
+    Next i
     
     filaActualResumen = filaActualResumen + 1
     
@@ -139,6 +138,8 @@ Sub GenerarInformeConID()
     For i = LBound(niveles) To UBound(niveles)
         wsResumen.Cells(i + filaActualResumen, 2).Value = niveles(i)
     Next i
+
+    ' Insertar fórmulas
 
     wsResumen.Columns.AutoFit
 
@@ -152,5 +153,3 @@ Sub GenerarInformeConID()
 
     MsgBox "Informe generado con éxito en: C:\Users\miriam.romero\Documents\macro-excel\vbaTest\Resultados.xlsx", vbInformation
 End Sub
-
-
