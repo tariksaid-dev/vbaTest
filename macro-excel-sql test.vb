@@ -183,11 +183,35 @@ Sub GenerarInformeConID()
 
     ' ##### Guardar archivo resultante #####
     
-    ' wbNuevo.SaveAs "C:\Users\tarik.said\Desktop\vbaTest\Resultados.xlsx"
-    wbNuevo.SaveAs "C:\Users\miriam.romero\Documents\macro-excel\vbaTest\Resultados SQL - Usuario Prueba.xlsx"
+    Dim nombreUsuario As String
+
+    Dim celdaNombreApellidos As Range
+    Set celdaNombreApellidos = wsOriginalData.Rows(1).Find("Nombre y Apellidos")
+
+    If celdaNombreApellidos Is Nothing Then
+        ' Si no se encuentra la columna, asigna el ID del usuario como nombre
+        nombreUsuario = "ID-" & CStr(idUsuario)
+    Else
+        nombreUsuario = wsOriginalData.Cells(filaID, celdaNombreApellidos.Column).Value
+    End If    
+    
+    Dim nombreArchivo As String
+    nombreArchivo = "Resultados SQL - " & nombreUsuario & ".xlsx"
+
+    ' Comprobamos si hay que cerrar el Workbook en caso de que estuviese abierto antes para evitar errores
+    For Each wb In Workbooks
+        If wb.Name = nombreArchivo Then
+            ' Cerrar el libro si está abierto
+            wb.Close SaveChanges:=False
+            Exit For ' Salir del bucle una vez que se cierra el libro
+        End If
+    Next wb
+
+    ' Guardar el nuevo libro con los resultados
+    wbNuevo.SaveAs ".\" & nombreArchivo
 
     ' Cerrar el libro de producción sin guardar cambios
     wbOriginalData.Close SaveChanges:=False
 
-    MsgBox "Informe generado con éxito en: C:\Users\miriam.romero\Documents\macro-excel\vbaTest\Resultados.xlsx", vbInformation
+    MsgBox "Informe generado con éxito como: " & nombreArchivo , vbInformation
 End Sub
