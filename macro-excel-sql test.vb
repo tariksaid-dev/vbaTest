@@ -124,7 +124,7 @@ Sub GenerarInformeConID()
     Dim niveles As Variant
 
     cabeceraResumen = Array("Dificultad", "Total preguntas", "Aciertos", "Errores", "% aciertos", "Killer answers", "% Killer answers")
-    niveles = Array("Basic", "Intermediate", "Advanced", "Total")
+    niveles = Array("Basic", "Intermediate", "Advanced")
 
     ' Insertar títulos de la cabecera
     
@@ -137,9 +137,47 @@ Sub GenerarInformeConID()
     ' Insertar niveles
     For i = LBound(niveles) To UBound(niveles)
         wsResumen.Cells(i + filaActualResumen, 2).Value = niveles(i)
+        
+        ' Insertar fórmulas
+        With wsResumen
+            ' Total preguntas por dificultad
+            .Cells(i + filaActualResumen, 3).Formula = "=COUNTIFS('Preguntas y respuestas'!$D:$D, Resumen!B" & i + filaActualResumen & ")"
+            ' Aciertos
+            .Cells(i + filaActualResumen, 4).Formula = "=SUMIFS('Preguntas y respuestas'!$E:$E, 'Preguntas y respuestas'!$D:$D, Resumen!B" & i + filaActualResumen & ", 'Preguntas y respuestas'!$D:$D, Resumen!B" & i + filaActualResumen & ")"
+            ' Errores (total preguntas - aciertos)
+            .Cells(i + filaActualResumen, 5).Formula = "=C" & i + filaActualResumen & "-D" & i + filaActualResumen
+            ' % aciertos
+            .Cells(i + filaActualResumen, 6).Formula = "=IFERROR(C" & i + filaActualResumen & "/(C" & i + filaActualResumen & "+D" & i + filaActualResumen & "),0)"
+            .Cells(i + filaActualResumen, 6).NumberFormat = "0%"
+            ' Killer answers
+            .Cells(i + filaActualResumen, 7).Formula = "=SUMIFS('Preguntas y respuestas'!$F:$F, 'Preguntas y respuestas'!$D:$D, Resumen!B" & i + filaActualResumen & ", 'Preguntas y respuestas'!$D:$D, Resumen!B" & i + filaActualResumen & ")"
+            ' % Killer answers
+            .Cells(i + filaActualResumen, 8).Formula = "=IFERROR(G" & i + filaActualResumen & "/C" & i + filaActualResumen & ",0)"
+            .Cells(i + filaActualResumen, 8).NumberFormat = "0%"
+        End With
     Next i
 
-    ' Insertar fórmulas
+    ' Cálculo de totales
+    filaActualResumen = filaActualResumen + (UBound(niveles) - LBound(niveles) + 1)
+    
+    wsResumen.Cells(filaActualResumen, 2).Value = "Total"
+    
+    With wsResumen
+        ' Total preguntas
+        .Cells(filaActualResumen, 3).Formula = "=SUM(C16:C18)"
+        ' Aciertos
+        .Cells(filaActualResumen, 4).Formula = "=SUM(D16:D18)"
+        ' Errores (total preguntas - aciertos)
+        .Cells(filaActualResumen, 5).Formula = "=C19-D19"
+        ' % aciertos
+        .Cells(filaActualResumen, 6).Formula = "=IF(C19<>0,D19/C19,0)"
+        .Cells(filaActualResumen, 6).NumberFormat = "0%"
+        ' Killer answers
+        .Cells(filaActualResumen, 7).Formula = "=SUM(G16:G18)"
+        ' % Killer answers
+        .Cells(filaActualResumen, 8).Formula = "=IF(C19<>0,G19/C19,0)"
+        .Cells(filaActualResumen, 8).NumberFormat = "0%"
+    End With
 
     wsResumen.Columns.AutoFit
 
