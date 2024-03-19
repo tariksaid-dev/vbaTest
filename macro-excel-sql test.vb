@@ -103,8 +103,8 @@ Sub GenerarInformeConID()
     
     ' ##### Acciones en la hoja de Resumen #####
     
-    ' Dibujar gráfico
-    
+    CrearGraficoApilado wsResumen
+
     filaActualResumen = filaActualResumen + 10 ' simulamos que se coloca el gráfico
 
     ' ####### Agregar el cuadro resumen #######
@@ -193,7 +193,7 @@ Sub GenerarInformeConID()
         nombreUsuario = "ID-" & CStr(idUsuario)
     Else
         nombreUsuario = wsOriginalData.Cells(filaID, celdaNombreApellidos.Column).Value
-    End If    
+    End If
     
     Dim nombreArchivo As String
     nombreArchivo = "Resultados SQL - " & nombreUsuario & ".xlsx"
@@ -213,5 +213,55 @@ Sub GenerarInformeConID()
     ' Cerrar el libro de producción sin guardar cambios
     wbOriginalData.Close SaveChanges:=False
 
-    MsgBox "Informe generado con éxito como: " & nombreArchivo , vbInformation
+    MsgBox "Informe generado con éxito como: " & nombreArchivo, vbInformation
 End Sub
+
+Sub CrearGraficoApilado(wsResumen As Worksheet)
+    ' Asumiendo que wsResumen es la hoja de trabajo pasada como parámetro
+    
+    ' Eliminar cualquier gráfico existente en wsResumen
+    Dim chtObj As ChartObject
+    For Each chtObj In wsResumen.ChartObjects
+        chtObj.Delete
+    Next chtObj
+
+    ' Añadir el gráfico y configurarlo
+    Set chtObj = wsResumen.ChartObjects.Add(Left:=10, Width:=375, Top:=10, Height:=300)
+    With chtObj.Chart
+        .ChartType = xlColumnStacked
+
+        ' Establecer rango de datos y aplicar a las series del gráfico
+        .SeriesCollection.NewSeries
+        .SeriesCollection(1).Name = "Aciertos"
+        .SeriesCollection(1).Values = wsResumen.Range("D16:D18")
+        .SeriesCollection(1).XValues = wsResumen.Range("B16:B18")
+        
+        .SeriesCollection.NewSeries
+        .SeriesCollection(2).Name = "Errores"
+        .SeriesCollection(2).Values = wsResumen.Range("E16:E18")
+
+        ' Añadir las etiquetas de datos
+        .SeriesCollection(1).ApplyDataLabels
+        .SeriesCollection(1).DataLabels.ShowValue = True
+        .SeriesCollection(2).ApplyDataLabels
+        .SeriesCollection(2).DataLabels.ShowValue = True
+
+        ' Añadir título y personalizar el gráfico
+        .HasTitle = True
+        .ChartTitle.Text = "RESUMEN TEST SQL"
+        .Axes(xlCategory, xlPrimary).HasTitle = False ' Ocultar título del eje X
+        .Axes(xlValue, xlPrimary).HasTitle = False ' Ocultar título del eje Y
+        .Legend.Position = xlLegendPositionTop ' Mover leyenda arriba
+
+        ' Opciones de formato adicionales
+        .SeriesCollection(1).Format.Fill.ForeColor.RGB = RGB(146, 208, 80) ' Verde para aciertos
+        .SeriesCollection(2).Format.Fill.ForeColor.RGB = RGB(192, 0, 0) ' Rojo para errores
+    End With
+
+    ' Ajustar tamaño de la fuente del título del gráfico
+    With chtObj.Chart.ChartTitle.Font
+        .Size = 14
+        .Bold = True
+    End With
+End Sub
+
