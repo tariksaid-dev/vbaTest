@@ -105,7 +105,7 @@ Sub GenerarInformeConID()
     
     CrearGraficoApilado wsResumen
 
-    filaActualResumen = filaActualResumen + 10 ' simulamos que se coloca el gráfico
+    filaActualResumen = filaActualResumen + 20 ' simulamos que se coloca el gráfico
 
     ' ####### Agregar el cuadro resumen #######
     filaActualResumen = filaActualResumen + 2 ' Fila en blanco de espacio entre el gráfico y el cuadro resumen
@@ -164,18 +164,18 @@ Sub GenerarInformeConID()
     
     With wsResumen
         ' Total preguntas
-        .Cells(filaActualResumen, 3).Formula = "=SUM(C16:C18)"
+        .Cells(filaActualResumen, 3).Formula = "=SUM(C26:C28)"
         ' Aciertos
-        .Cells(filaActualResumen, 4).Formula = "=SUM(D16:D18)"
+        .Cells(filaActualResumen, 4).Formula = "=SUM(D26:D28)"
         ' Errores (total preguntas - aciertos)
-        .Cells(filaActualResumen, 5).Formula = "=C19-D19"
+        .Cells(filaActualResumen, 5).Formula = "=C29-D29"
         ' % aciertos
-        .Cells(filaActualResumen, 6).Formula = "=IF(C19<>0,D19/C19,0)"
+        .Cells(filaActualResumen, 6).Formula = "=IF(C29<>0,D29/C29,0)"
         .Cells(filaActualResumen, 6).NumberFormat = "0%"
         ' Killer answers
-        .Cells(filaActualResumen, 7).Formula = "=SUM(G16:G18)"
+        .Cells(filaActualResumen, 7).Formula = "=SUM(G26:G28)"
         ' % Killer answers
-        .Cells(filaActualResumen, 8).Formula = "=IF(C19<>0,G19/C19,0)"
+        .Cells(filaActualResumen, 8).Formula = "=IF(C29<>0,G29/C29,0)"
         .Cells(filaActualResumen, 8).NumberFormat = "0%"
     End With
 
@@ -233,12 +233,12 @@ Sub CrearGraficoApilado(wsResumen As Worksheet)
         ' Establecer rango de datos y aplicar a las series del gráfico
         .SeriesCollection.NewSeries
         .SeriesCollection(1).Name = "Aciertos"
-        .SeriesCollection(1).Values = wsResumen.Range("D16:D18")
-        .SeriesCollection(1).XValues = wsResumen.Range("B16:B18")
+        .SeriesCollection(1).Values = wsResumen.Range("D26:D28")
+        .SeriesCollection(1).XValues = wsResumen.Range("B26:B28")
         
         .SeriesCollection.NewSeries
         .SeriesCollection(2).Name = "Errores"
-        .SeriesCollection(2).Values = wsResumen.Range("E16:E18")
+        .SeriesCollection(2).Values = wsResumen.Range("E26:E28")
 
         ' Añadir las etiquetas de datos
         .SeriesCollection(1).ApplyDataLabels
