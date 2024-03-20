@@ -13,7 +13,6 @@ Sub GenerarInformeConID()
     Dim points As Integer
     Dim killer As Integer
     
-    ' Propiedades para la hoja de Resumen
     
     ' Solicitar al usuario que introduzca el ID
     idUsuario = Application.InputBox("Introduce el ID para buscar:", "Buscar por ID", Type:=1)
@@ -27,11 +26,8 @@ Sub GenerarInformeConID()
     rutaBase = ThisWorkbook.Path
 
     ' Ruta completa del archivo de producción
-    ' rutaOriginalData = "C:\Users\tarik.said\Desktop\vbaTest\Cuestionario SQL (Producción).xlsx"
-    ' rutaOriginalData = "C:\Users\miriam.romero\Documents\macro-excel\vbaTest\Cuestionario SQL (Producción).xlsx"
     rutaOriginalData = rutaBase & "\Cuestionario SQL (Producción).xlsx"
     
-
     ' Intentar abrir el libro de producción
     Set wbOriginalData = Workbooks.Open(rutaOriginalData)
     Set wsOriginalData = wbOriginalData.Sheets(1)
@@ -62,50 +58,8 @@ Sub GenerarInformeConID()
 
     ' ##### Acciones en la hoja de Preguntas y respuestas #####
 
-    ' Cabeceras
-    wsPreguntasRespuestas.Cells(1, 1).Value = "question"
-    wsPreguntasRespuestas.Cells(1, 2).Value = "user answer"
-    wsPreguntasRespuestas.Cells(1, 3).Value = "id"
-    wsPreguntasRespuestas.Cells(1, 4).Value = "Level"
-    wsPreguntasRespuestas.Cells(1, 5).Value = "Points"
-    wsPreguntasRespuestas.Cells(1, 6).Value = "Killer answer"
-    
-    wsPreguntasRespuestas.Columns("C").NumberFormat = "@"
+    RellenarHojaPreguntasRespuestas wsOriginalData, wsTemplate, wsPreguntasRespuestas, filaID
 
-    destinoFila = 2 ' Iniciar en la segunda fila para los datos copiados tras las cabeceras
-
-    ' Determinar la última columna con datos en la fila 1
-    Dim ultimaColumna As Long
-    ultimaColumna = wsOriginalData.Cells(1, Columns.Count).End(xlToLeft).Column
-
-    ' Iterar sobre cada celda en la fila 1 hasta la última columna con datos
-    For i = 1 To ultimaColumna
-        ' Verificar si el valor de la celda comienza con "["
-        If Left(wsOriginalData.Cells(1, i).Value, 1) = "[" Then
-            ' Transponer los valores de la fila 1 y la fila encontrada a las columnas A y B en el nuevo libro
-            wsPreguntasRespuestas.Cells(destinoFila, 1).Value = Trim(wsOriginalData.Cells(1, i).Value)
-            wsPreguntasRespuestas.Cells(destinoFila, 2).Value = Trim(wsOriginalData.Cells(filaID, i).Value)
-
-            ' Obtener ID
-            id = Mid(wsOriginalData.Cells(1, i).Value, 2, 4) & "." & Mid(wsOriginalData.Cells(filaID, i).Value, 2, 2)
-            wsPreguntasRespuestas.Cells(destinoFila, 3).Value = id
-            
-            ' Obtener Level
-            level = WorksheetFunction.VLookup(id, wsTemplate.Range("C:F"), 2, False)
-            wsPreguntasRespuestas.Cells(destinoFila, 4).Value = level
-            
-            ' Obtener Points
-            points = WorksheetFunction.VLookup(id, wsTemplate.Range("C:F"), 3, False)
-            wsPreguntasRespuestas.Cells(destinoFila, 5).Value = points
-            
-            ' Obtener Killer answer
-            killer = WorksheetFunction.VLookup(id, wsTemplate.Range("C:F"), 4, False)
-            wsPreguntasRespuestas.Cells(destinoFila, 6).Value = killer
-
-            destinoFila = destinoFila + 1
-        End If
-    Next i
-    
     ' ##### Acciones en la hoja de Resumen #####
     
     CrearGraficoApilado wsResumen
@@ -152,14 +106,12 @@ Sub GenerarInformeConID()
             ' Errores (total preguntas - aciertos)
             .Cells(i + filaActualResumen, 5).Formula = "=C" & i + filaActualResumen & "-D" & i + filaActualResumen
             ' % aciertos
-            ' .Cells(i + filaActualResumen, 6).Formula = "=IFERROR(C" & i + filaActualResumen & "/(C" & i + filaActualResumen & "+D" & i + filaActualResumen & "),0)"
             .Cells(i + filaActualResumen, 6).Formula = "=IF(C" & i + filaActualResumen & "<>0, D" & i + filaActualResumen & "/C" & i + filaActualResumen & ",0)"
 
             .Cells(i + filaActualResumen, 6).NumberFormat = "0%"
             ' Killer answers
             .Cells(i + filaActualResumen, 7).Formula = "=SUMIFS('Preguntas y respuestas'!$F:$F, 'Preguntas y respuestas'!$D:$D, Resumen!B" & i + filaActualResumen & ", 'Preguntas y respuestas'!$D:$D, Resumen!B" & i + filaActualResumen & ")"
             ' % Killer answers
-            ' .Cells(i + filaActualResumen, 8).Formula = "=IFERROR(G" & i + filaActualResumen & "/C" & i + filaActualResumen & ",0)"
             .Cells(i + filaActualResumen, 8).Formula = "=IF(C" & i + filaActualResumen & "<>0, G" & i + filaActualResumen & "/C" & i + filaActualResumen & ",0)"
 
             .Cells(i + filaActualResumen, 8).NumberFormat = "0%"
@@ -282,5 +234,54 @@ Function GuardarArchivoResultado(wbNuevo As Workbook, rutaBase As String, nombre
     wbNuevo.SaveAs rutaArchivoFinal
     
     GuardarArchivoResultado = rutaArchivoFinal
+
+End Function
+
+Function RellenarHojaPreguntasRespuestas(wsOriginalData As Worksheet, wsTemplate As Worksheet, wsPreguntasRespuestas As Worksheet, filaID As Long)
+
+    ' Cabeceras
+    wsPreguntasRespuestas.Cells(1, 1).Value = "question"
+    wsPreguntasRespuestas.Cells(1, 2).Value = "user answer"
+    wsPreguntasRespuestas.Cells(1, 3).Value = "id"
+    wsPreguntasRespuestas.Cells(1, 4).Value = "Level"
+    wsPreguntasRespuestas.Cells(1, 5).Value = "Points"
+    wsPreguntasRespuestas.Cells(1, 6).Value = "Killer answer"
+    
+    wsPreguntasRespuestas.Columns("C").NumberFormat = "@"
+
+    Dim destinoFila As Long
+    destinoFila = 2 ' Iniciar en la segunda fila para los datos copiados tras las cabeceras
+
+    ' Determinar la última columna con datos en la fila 1
+    Dim ultimaColumna As Long
+    ultimaColumna = wsOriginalData.Cells(1, Columns.Count).End(xlToLeft).Column
+
+    ' Iterar sobre cada celda en la fila 1 hasta la última columna con datos
+    For i = 1 To ultimaColumna
+        ' Verificar si el valor de la celda comienza con "["
+        If Left(wsOriginalData.Cells(1, i).Value, 1) = "[" Then
+            ' Transponer los valores de la fila 1 y la fila encontrada a las columnas A y B en el nuevo libro
+            wsPreguntasRespuestas.Cells(destinoFila, 1).Value = Trim(wsOriginalData.Cells(1, i).Value)
+            wsPreguntasRespuestas.Cells(destinoFila, 2).Value = Trim(wsOriginalData.Cells(filaID, i).Value)
+
+            ' Obtener ID
+            id = Mid(wsOriginalData.Cells(1, i).Value, 2, 4) & "." & Mid(wsOriginalData.Cells(filaID, i).Value, 2, 2)
+            wsPreguntasRespuestas.Cells(destinoFila, 3).Value = id
+            
+            ' Obtener Level
+            level = WorksheetFunction.VLookup(id, wsTemplate.Range("C:F"), 2, False)
+            wsPreguntasRespuestas.Cells(destinoFila, 4).Value = level
+            
+            ' Obtener Points
+            points = WorksheetFunction.VLookup(id, wsTemplate.Range("C:F"), 3, False)
+            wsPreguntasRespuestas.Cells(destinoFila, 5).Value = points
+            
+            ' Obtener Killer answer
+            killer = WorksheetFunction.VLookup(id, wsTemplate.Range("C:F"), 4, False)
+            wsPreguntasRespuestas.Cells(destinoFila, 6).Value = killer
+
+            destinoFila = destinoFila + 1
+        End If
+    Next i
 
 End Function
