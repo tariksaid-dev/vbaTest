@@ -203,24 +203,10 @@ Sub GenerarInformeConID()
     Else
         nombreUsuario = wsOriginalData.Cells(filaID, celdaNombreApellidos.Column).Value
     End If
-    
-    Dim nombreArchivo As String
-    nombreArchivo = "Resultados SQL - " & nombreUsuario & ".xlsx"
-
-    ' Comprobamos si hay que cerrar el Workbook en caso de que estuviese abierto antes para evitar errores
-    For Each wb In Workbooks
-        If wb.Name = nombreArchivo Then
-            ' Cerrar el libro si está abierto
-            wb.Close SaveChanges:=False
-            Exit For ' Salir del bucle una vez que se cierra el libro
-        End If
-    Next wb
 
     Dim rutaArchivoFinal As String
-    rutaArchivoFinal = rutaBase & "\" & nombreArchivo
 
-    ' Guardar el nuevo libro con los resultados
-    wbNuevo.SaveAs rutaArchivoFinal
+    rutaArchivoFinal = GuardarArchivoResultado(wbNuevo, rutaBase, nombreUsuario)
 
     ' Cerrar el libro de producción sin guardar cambios
     wbOriginalData.Close SaveChanges:=False
@@ -276,3 +262,25 @@ Sub CrearGraficoApilado(wsResumen As Worksheet)
         .Bold = True
     End With
 End Sub
+
+Function GuardarArchivoResultado(wbNuevo As Workbook, rutaBase As String, nombreUsuario As String) As String
+
+    Dim nombreArchivo As String
+    nombreArchivo = "Resultados SQL - " & nombreUsuario & ".xlsx"
+
+    ' Comprobamos si hay que cerrar el Workbook en caso de que estuviese abierto antes para evitar errores
+    For Each wb In Workbooks
+        If wb.Name = nombreArchivo Then
+            wb.Close SaveChanges:=False
+            Exit For
+        End If
+    Next wb
+    
+    Dim rutaArchivoFinal As String
+    rutaArchivoFinal = rutaBase & "\" & nombreArchivo
+
+    wbNuevo.SaveAs rutaArchivoFinal
+    
+    GuardarArchivoResultado = rutaArchivoFinal
+
+End Function
