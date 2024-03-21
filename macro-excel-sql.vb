@@ -76,7 +76,7 @@ Sub GenerarInformeConID()
     Dim cabeceraResumen As Variant
     Dim niveles As Variant
 
-    cabeceraResumen = Array("Dificultad", "Total preguntas", "Aciertos", "Errores", "% aciertos", "Killer answers", "% Killer answers")
+    cabeceraResumen = Array("Dificultad", "Total preguntas", "Aciertos", "Errores", "% aciertos","Total killer", "Killer answers", "% Killer answers")
     niveles = Array("Basic", "Intermediate", "Advanced")
 
     ' Insertar títulos de la cabecera
@@ -103,12 +103,17 @@ Sub GenerarInformeConID()
             .Cells(i + filaActualResumen, 6).Formula = "=IF(C" & i + filaActualResumen & "<>0, D" & i + filaActualResumen & "/C" & i + filaActualResumen & ",0)"
 
             .Cells(i + filaActualResumen, 6).NumberFormat = "0%"
+
             ' Killer answers
             .Cells(i + filaActualResumen, 7).Formula = "=SUMIFS('Preguntas y respuestas'!$F:$F, 'Preguntas y respuestas'!$D:$D, Resumen!B" & i + filaActualResumen & ", 'Preguntas y respuestas'!$D:$D, Resumen!B" & i + filaActualResumen & ")"
-            ' % Killer answers
-            .Cells(i + filaActualResumen, 8).Formula = "=IF(C" & i + filaActualResumen & "<>0, G" & i + filaActualResumen & "/C" & i + filaActualResumen & ",0)"
 
-            .Cells(i + filaActualResumen, 8).NumberFormat = "0%"
+            ' Killer answers
+            .Cells(i + filaActualResumen, 8).Formula = "=SUMIFS('Preguntas y respuestas'!$F:$F, 'Preguntas y respuestas'!$D:$D, Resumen!B" & i + filaActualResumen & ", 'Preguntas y respuestas'!$D:$D, Resumen!B" & i + filaActualResumen & ")"
+
+            ' % Killer answers
+            .Cells(i + filaActualResumen, 9).Formula = "=IF(C" & i + filaActualResumen & "<>0, G" & i + filaActualResumen & "/C" & i + filaActualResumen & ",0)"
+
+            .Cells(i + filaActualResumen, 9).NumberFormat = "0%"
         End With
     Next i
 
@@ -129,9 +134,10 @@ Sub GenerarInformeConID()
         .Cells(filaActualResumen, 6).NumberFormat = "0%"
         ' Killer answers
         .Cells(filaActualResumen, 7).Formula = "=SUM(G26:G28)"
+        .Cells(filaActualResumen, 8).Formula = "=SUM(G26:G28)"
         ' % Killer answers
-        .Cells(filaActualResumen, 8).Formula = "=IF(C29<>0,G29/C29,0)"
-        .Cells(filaActualResumen, 8).NumberFormat = "0%"
+        .Cells(filaActualResumen, 9).Formula = "=IF(C29<>0,G29/C29,0)"
+        .Cells(filaActualResumen, 9).NumberFormat = "0%"
     End With
 
     wsResumen.Columns.AutoFit
