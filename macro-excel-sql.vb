@@ -6,13 +6,6 @@ Sub GenerarInformeConID()
     Dim i As Long, destinoFila As Long, filaID As Long
     Dim idUsuario As Variant
     Dim encontrado As Range
-
-    ' Propiedades para la hoja de Preguntas y Respuestas
-    Dim id As String
-    Dim level As String
-    Dim points As Integer
-    Dim killer As Integer
-    
     
     ' Solicitar al usuario que introduzca el ID
     idUsuario = Application.InputBox("Introduce el ID para buscar:", "Buscar por ID", Type:=1)
@@ -63,6 +56,7 @@ Sub GenerarInformeConID()
     ' ##### Acciones en la hoja de Resumen #####
     
     CrearGraficoApilado wsResumen
+    CrearGraficoBarrasKiller wsResumen
 
     filaActualResumen = filaActualResumen + 20 ' simulamos que se coloca el gráfico
 
@@ -285,3 +279,52 @@ Function RellenarHojaPreguntasRespuestas(wsOriginalData As Worksheet, wsTemplate
     Next i
 
 End Function
+
+Sub CrearGraficoBarrasKiller(wsResumen As Worksheet)
+    ' Asumiendo que wsResumen es la hoja de trabajo pasada como parámetro
+    
+    ' Eliminar cualquier gráfico existente que se llame "GraficoKiller"
+    Dim graficoExistente As ChartObject
+    For Each graficoExistente In wsResumen.ChartObjects
+        If graficoExistente.Name = "GraficoKiller" Then
+            graficoExistente.Delete
+        End If
+    Next graficoExistente
+
+    ' Añadir el gráfico de columnas y configurarlo
+    Dim chtObj As ChartObject
+    Set chtObj = wsResumen.ChartObjects.Add(Left:=400, Width:=375, Top:=10, Height:=300)
+    chtObj.Name = "GraficoKiller" ' Asignar un nombre al gráfico para poder referenciarlo luego
+    With chtObj.Chart
+        .ChartType = xlColumnClustered ' Gráfico de columnas agrupadas
+        
+        ' Establecer rango de datos para las "Killer Answers"
+        .SeriesCollection.NewSeries
+        .SeriesCollection(1).Name = "Killer Answers"
+        .SeriesCollection(1).Values = wsResumen.Range("G26:G28")
+        .SeriesCollection(1).XValues = wsResumen.Range("B26:B28")
+
+        ' Añadir las etiquetas de datos
+        .SeriesCollection(1).ApplyDataLabels
+        .SeriesCollection(1).DataLabels.ShowValue = True
+
+        ' Añadir título y personalizar el gráfico
+        .HasTitle = True
+        .ChartTitle.Text = "Número de Killer Answers"
+        .Axes(xlCategory, xlPrimary).HasTitle = True
+        .Axes(xlCategory, xlPrimary).AxisTitle.Text = "Dificultad"
+        .Axes(xlValue, xlPrimary).HasTitle = True
+        .Axes(xlValue, xlPrimary).AxisTitle.Text = "Cantidad"
+        
+        ' Personalizar colores de las series
+        .SeriesCollection(1).Format.Fill.ForeColor.RGB = RGB(79, 129, 189) ' Azul para "Killer Answers"
+        
+        .Legend.Position = xlLegendPositionTop ' Mover leyenda arriba
+    End With
+
+    ' Ajustar tamaño de la fuente del título del gráfico
+    With chtObj.Chart.ChartTitle.Font
+        .Size = 14
+        .Bold = True
+    End With
+End Sub
