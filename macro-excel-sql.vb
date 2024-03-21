@@ -31,7 +31,7 @@ Sub GenerarInformeConID()
     ' Verificar si se encontró el ID
     If Not encontrado Is Nothing Then
         filaID = encontrado.Row
-        Debug.Print "El valor de filaID es: " & filaID
+        ' Debug.Print "El valor de filaID es: " & filaID
     Else
         MsgBox "El ID que has introducido no existe.", vbExclamation
         wbOriginalData.Close SaveChanges:=False
@@ -76,7 +76,7 @@ Sub GenerarInformeConID()
     Dim cabeceraResumen As Variant
     Dim niveles As Variant
 
-    cabeceraResumen = Array("Dificultad", "Total preguntas", "Aciertos", "Errores", "% aciertos","Total killer", "Killer answers", "% Killer answers")
+    cabeceraResumen = Array("Dificultad", "Total preguntas", "Aciertos", "Errores", "% aciertos", "Total killer", "Killer answers", "% Killer answers")
     niveles = Array("Basic", "Intermediate", "Advanced")
 
     ' Insertar títulos de la cabecera
@@ -104,14 +104,14 @@ Sub GenerarInformeConID()
 
             .Cells(i + filaActualResumen, 6).NumberFormat = "0%"
 
-            ' Killer answers
-            .Cells(i + filaActualResumen, 7).Formula = "=SUMIFS('Preguntas y respuestas'!$F:$F, 'Preguntas y respuestas'!$D:$D, Resumen!B" & i + filaActualResumen & ", 'Preguntas y respuestas'!$D:$D, Resumen!B" & i + filaActualResumen & ")"
+            ' Total killer answers
+            .Cells(i + filaActualResumen, 7).Value = CalcularTotalKiller(wsTemplate, niveles(i))
 
             ' Killer answers
             .Cells(i + filaActualResumen, 8).Formula = "=SUMIFS('Preguntas y respuestas'!$F:$F, 'Preguntas y respuestas'!$D:$D, Resumen!B" & i + filaActualResumen & ", 'Preguntas y respuestas'!$D:$D, Resumen!B" & i + filaActualResumen & ")"
 
             ' % Killer answers
-            .Cells(i + filaActualResumen, 9).Formula = "=IF(C" & i + filaActualResumen & "<>0, G" & i + filaActualResumen & "/C" & i + filaActualResumen & ",0)"
+            .Cells(i + filaActualResumen, 9).Formula = "=IF(G" & i + filaActualResumen & "<>0, H" & i + filaActualResumen & "/G" & i + filaActualResumen & ",0)"
 
             .Cells(i + filaActualResumen, 9).NumberFormat = "0%"
         End With
@@ -130,13 +130,14 @@ Sub GenerarInformeConID()
         ' Errores (total preguntas - aciertos)
         .Cells(filaActualResumen, 5).Formula = "=C29-D29"
         ' % aciertos
+        
         .Cells(filaActualResumen, 6).Formula = "=IF(C29<>0,D29/C29,0)"
         .Cells(filaActualResumen, 6).NumberFormat = "0%"
         ' Killer answers
         .Cells(filaActualResumen, 7).Formula = "=SUM(G26:G28)"
-        .Cells(filaActualResumen, 8).Formula = "=SUM(G26:G28)"
+        .Cells(filaActualResumen, 8).Formula = "=SUM(H26:H28)"
         ' % Killer answers
-        .Cells(filaActualResumen, 9).Formula = "=IF(C29<>0,G29/C29,0)"
+        .Cells(filaActualResumen, 9).Formula = "=IF(G29<>0,H29/G29,0)"
         .Cells(filaActualResumen, 9).NumberFormat = "0%"
     End With
 
@@ -307,7 +308,7 @@ Sub CrearGraficoBarrasKiller(wsResumen As Worksheet)
         ' Establecer rango de datos para las "Killer Answers"
         .SeriesCollection.NewSeries
         .SeriesCollection(1).Name = "Killer Answers"
-        .SeriesCollection(1).Values = wsResumen.Range("G26:G28")
+        .SeriesCollection(1).Values = wsResumen.Range("H26:H28")
         .SeriesCollection(1).XValues = wsResumen.Range("B26:B28")
 
         ' Añadir las etiquetas de datos
@@ -334,3 +335,46 @@ Sub CrearGraficoBarrasKiller(wsResumen As Worksheet)
         .Bold = True
     End With
 End Sub
+
+Function CalcularTotalKiller(wsTemplate As Worksheet, nivel As Variant) As Integer
+    ' Elimina On Error GoTo ErrorHandler para poder depurar
+    Dim totalKiller As Integer
+    totalKiller = 0
+
+    Dim dict As Object
+    Set dict = CreateObject("Scripting.Dictionary")
+
+    Dim lastRow As Long
+    lastRow = wsTemplate.Cells(wsTemplate.Rows.Count, "D").End(xlUp).Row
+
+    Dim questionCode As String
+    Dim questionLevel As String
+    Dim isKiller As Integer
+
+    For i = 2 To lastRow
+        questionCode = wsTemplate.Cells(i, "C").Value
+        Debug.Print "Question Code: "; questionCode ' Imprime el código de la pregunta
+        If InStr(questionCode, ".") > 0 Then
+            questionCode = Split(questionCode, ".")(0)
+        End If
+
+        questionLevel = wsTemplate.Cells(i, "D").Value
+        Debug.Print "Question Level: "; questionLevel ' Imprime el nivel de la pregunta
+        isKiller = Val(wsTemplate.Cells(i, "F").Value)
+
+        Debug.Print "Is Killer: "; isKiller ' Imprime si es killer
+
+        If IsError(isKiller) Then
+            MsgBox "La celda F" & i & " no contiene un número válido."
+            Exit Function
+        End If
+
+        If questionLevel = nivel And isKiller = 1 And Not dict.Exists(questionCode) Then
+            dict.Add questionCode, True
+            totalKiller = totalKiller + 1
+        End If
+    Next i
+
+    CalcularTotalKiller = totalKiller
+    Exit Function
+End Function
