@@ -16,10 +16,7 @@ Sub GenerarInformeConID()
         Exit Sub
     End If
 
-
     rutaBase = ThisWorkbook.Path
-
-    ' Ruta completa del archivo de producción
     rutaOriginalData = rutaBase & "\Cuestionario SQL (Producción).xlsx"
     
     ' Intentar abrir el libro de producción
@@ -32,7 +29,6 @@ Sub GenerarInformeConID()
     ' Verificar si se encontró el ID
     If Not encontrado Is Nothing Then
         filaID = encontrado.Row
-        ' Debug.Print "El valor de filaID es: " & filaID
     Else
         MsgBox "El ID que has introducido no existe.", vbExclamation
         wbOriginalData.Close SaveChanges:=False
@@ -372,6 +368,12 @@ Sub CrearGraficoBarrasKiller(wsResumen As Worksheet)
         ' Configuración para eliminar eje Y y líneas de cuadrícula
         .HasAxis(xlCategory, xlPrimary) = True
         .HasAxis(xlValue, xlPrimary) = True
+
+        With .Axes(xlValue)
+          .HasMajorGridlines = True
+          .MajorUnit = 1
+          .MinimumScale = 0
+        End With
 
         ' .Axes(xlCategory).MajorGridlines.Format.Line.Visible = msoFalse
         ' Quitar líneas de cuadrícula del eje Y
