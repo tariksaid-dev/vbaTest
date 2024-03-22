@@ -52,29 +52,22 @@ Sub GenerarInformeConID()
     If celdaFecha Is Nothing Then
         fecha = "Sin fecha"
     Else
-        ' Primero obtenemos el valor de la celda
         Dim valorCelda As Variant
         valorCelda = wsOriginalData.Cells(filaID, celdaFecha.Column).Value
 
-        ' Luego verificamos si el valorCelda no es Nothing y si es una cadena no vacía
         If Not IsError(valorCelda) And Not IsEmpty(valorCelda) Then
-            ' Si es una cadena, aplicamos Split y obtenemos la primera parte
             Dim partes() As String
             partes = Split(CStr(valorCelda), " ")
             If UBound(partes) >= 0 Then fecha = partes(0) Else fecha = "Formato inesperado"
         Else
             fecha = "Sin fecha"
         End If
-
-        Debug.Print fecha
     End If
 
     Set wsTemplate = ThisWorkbook.Sheets("answer template")
-
-    ' Crear un nuevo libro para los resultados
     Set wbNuevo = Workbooks.Add
-    
     Set wsPreguntasRespuestas = wbNuevo.Sheets(1)
+    
     wbNuevo.Sheets(1).Name = "Preguntas y respuestas"
     
     Set wsResumen = wbNuevo.Worksheets.Add(After:=wbNuevo.Sheets(1))
@@ -130,7 +123,6 @@ Sub GenerarInformeConID()
     niveles = Array("Basic", "Intermediate", "Advanced")
 
     ' Insertar títulos de la cabecera
-    
     For i = LBound(cabeceraResumen) To UBound(cabeceraResumen)
       With wsResumen.Cells(filaActualResumen, i + 2)
         .Value = cabeceraResumen(i)
@@ -174,7 +166,6 @@ Sub GenerarInformeConID()
 
     ' Cálculo de totales
     filaActualResumen = filaActualResumen + (UBound(niveles) - LBound(niveles) + 1)
-    
     wsResumen.Cells(filaActualResumen, 2).Value = "Total"
     
     With wsResumen
@@ -185,7 +176,6 @@ Sub GenerarInformeConID()
         ' Errores (total preguntas - aciertos)
         .Cells(filaActualResumen, 5).Formula = "=C29-D29"
         ' % aciertos
-        
         .Cells(filaActualResumen, 6).Formula = "=IF(C29<>0,D29/C29,0)"
         .Cells(filaActualResumen, 6).NumberFormat = "0%"
         ' Killer answers
@@ -199,11 +189,7 @@ Sub GenerarInformeConID()
     wsResumen.Columns.AutoFit
 
     ' ##### Guardar archivo resultante #####
-    
-
-
     Dim rutaArchivoFinal As String
-
     rutaArchivoFinal = GuardarArchivoResultado(wbNuevo, rutaBase, nombreUsuario)
 
     ' Cerrar el libro de producción sin guardar cambios
@@ -213,7 +199,6 @@ Sub GenerarInformeConID()
 End Sub
 
 Function GuardarArchivoResultado(wbNuevo As Workbook, rutaBase As String, nombreUsuario As String) As String
-
     Dim nombreArchivo As String
     nombreArchivo = "Resultados SQL - " & nombreUsuario & ".xlsx"
 
@@ -231,11 +216,9 @@ Function GuardarArchivoResultado(wbNuevo As Workbook, rutaBase As String, nombre
     wbNuevo.SaveAs rutaArchivoFinal
     
     GuardarArchivoResultado = rutaArchivoFinal
-
 End Function
 
 Function RellenarHojaPreguntasRespuestas(wsOriginalData As Worksheet, wsTemplate As Worksheet, wsPreguntasRespuestas As Worksheet, filaID As Long)
-
     ' Cabeceras
     wsPreguntasRespuestas.Cells(1, 1).Value = "question"
     wsPreguntasRespuestas.Cells(1, 2).Value = "user answer"
@@ -255,7 +238,6 @@ Function RellenarHojaPreguntasRespuestas(wsOriginalData As Worksheet, wsTemplate
 
     ' Iterar sobre cada celda en la fila 1 hasta la última columna con datos
     For i = 1 To ultimaColumna
-        ' Verificar si el valor de la celda comienza con "["
         If Left(wsOriginalData.Cells(1, i).Value, 1) = "[" Then
             ' Transponer los valores de la fila 1 y la fila encontrada a las columnas A y B en el nuevo libro
             wsPreguntasRespuestas.Cells(destinoFila, 1).Value = Trim(wsOriginalData.Cells(1, i).Value)
@@ -321,7 +303,7 @@ Sub CrearGraficoApilado(wsResumen As Worksheet, nombreUsuario As String, fecha A
                 .Font.Color = RGB(255, 255, 255) ' Texto blanco
                 .Font.Bold = True
             End With
-            .Format.Fill.ForeColor.RGB = RGB(112, 173, 71) ' Verde para aciertos
+            .Format.Fill.ForeColor.RGB = RGB(112, 173, 71)
         End With
 
         Set serie = .SeriesCollection.NewSeries
@@ -331,10 +313,10 @@ Sub CrearGraficoApilado(wsResumen As Worksheet, nombreUsuario As String, fecha A
             .ApplyDataLabels
             With .DataLabels
                 .ShowValue = True
-                .Font.Color = RGB(255, 255, 255) ' Texto blanco
+                .Font.Color = RGB(255, 255, 255)
                 .Font.Bold = True
             End With
-            .Format.Fill.ForeColor.RGB = RGB(192, 0, 0) ' Rojo para errores
+            .Format.Fill.ForeColor.RGB = RGB(192, 0, 0)
         End With
 
         ' Opciones de formato adicionales para el gráfico
@@ -346,7 +328,6 @@ Sub CrearGraficoApilado(wsResumen As Worksheet, nombreUsuario As String, fecha A
 End Sub
 
 Sub CrearGraficoBarrasKiller(wsResumen As Worksheet)
-    ' Eliminar cualquier gráfico existente que se llame "GraficoKiller"
     Dim graficoExistente As ChartObject
     For Each graficoExistente In wsResumen.ChartObjects
         If graficoExistente.Name = "GraficoKiller" Then
@@ -365,7 +346,7 @@ Sub CrearGraficoBarrasKiller(wsResumen As Worksheet)
         .Axes(xlValue, xlPrimary).HasTitle = True
         .Axes(xlValue, xlPrimary).AxisTitle.Text = "Cantidad"
         .Legend.Position = xlLegendPositionTop ' Mover leyenda arriba
-        ' Configuración para eliminar eje Y y líneas de cuadrícula
+
         .HasAxis(xlCategory, xlPrimary) = True
         .HasAxis(xlValue, xlPrimary) = True
 
@@ -374,13 +355,7 @@ Sub CrearGraficoBarrasKiller(wsResumen As Worksheet)
           .MajorUnit = 1
           .MinimumScale = 0
         End With
-
-        ' .Axes(xlCategory).MajorGridlines.Format.Line.Visible = msoFalse
-        ' Quitar líneas de cuadrícula del eje Y
-        ' .Axes(xlValue).MajorGridlines.Format.Line.Visible = msoFalse
-
-        
-        ' Configurar serie de datos en una operación con With
+     
         Dim serie As Series
         Set serie = .SeriesCollection.NewSeries
 
@@ -391,13 +366,12 @@ Sub CrearGraficoBarrasKiller(wsResumen As Worksheet)
             .ApplyDataLabels
             With .DataLabels
                 .ShowValue = True
-                .Font.Color = RGB(255, 255, 255) ' Texto blanco
-                .Font.Bold = True 'texto blanco para mejor contraste
+                .Font.Color = RGB(255, 255, 255)
+                .Font.Bold = True 
             End With
-            .Format.Fill.ForeColor.RGB = RGB(79, 129, 189) ' Azul para "Killer Answers"
+            .Format.Fill.ForeColor.RGB = RGB(79, 129, 189)
         End With
 
-        ' Ajustes adicionales del gráfico
         With .ChartTitle.Font
             .Size = 18
             .Bold = True
@@ -406,7 +380,6 @@ Sub CrearGraficoBarrasKiller(wsResumen As Worksheet)
 End Sub
 
 Function CalcularTotalKiller(wsTemplate As Worksheet, nivel As Variant) As Integer
-    ' Elimina On Error GoTo ErrorHandler para poder depurar
     Dim totalKiller As Integer
     totalKiller = 0
 
@@ -422,16 +395,13 @@ Function CalcularTotalKiller(wsTemplate As Worksheet, nivel As Variant) As Integ
 
     For i = 2 To lastRow
         questionCode = wsTemplate.Cells(i, "C").Value
-        ' Debug.Print "Question Code: "; questionCode ' Imprime el código de la pregunta
+        
         If InStr(questionCode, ".") > 0 Then
             questionCode = Split(questionCode, ".")(0)
         End If
 
         questionLevel = wsTemplate.Cells(i, "D").Value
-        ' Debug.Print "Question Level: "; questionLevel ' Imprime el nivel de la pregunta
         isKiller = Val(wsTemplate.Cells(i, "F").Value)
-
-        ' Debug.Print "Is Killer: "; isKiller ' Imprime si es killer
 
         If IsError(isKiller) Then
             MsgBox "La celda F" & i & " no contiene un número válido."
