@@ -16,6 +16,7 @@ Sub GenerarInformeConID()
         Exit Sub
     End If
 
+
     rutaBase = ThisWorkbook.Path
 
     ' Ruta completa del archivo de producción
@@ -38,6 +39,40 @@ Sub GenerarInformeConID()
         Exit Sub
     End If
 
+    Dim nombreUsuario As String
+    Dim fecha As String
+    Dim celdaFecha as Range
+    Dim celdaNombreApellidos As Range
+    Set celdaNombreApellidos = wsOriginalData.Rows(1).Find("Nombre y Apellidos")
+    Set celdaFecha = wsOriginalData.Rows(1).Find("Hora de finalización")
+
+    If celdaNombreApellidos Is Nothing Then
+        ' Si no se encuentra la columna, asigna el ID del usuario como nombre
+        nombreUsuario = "ID-" & CStr(idUsuario)
+    Else
+        nombreUsuario = wsOriginalData.Cells(filaID, celdaNombreApellidos.Column).Value
+    End If
+
+    If celdaFecha Is Nothing Then
+        fecha = "Sin fecha"
+    Else
+        ' Primero obtenemos el valor de la celda
+        Dim valorCelda As Variant
+        valorCelda = wsOriginalData.Cells(filaID, celdaFecha.Column).Value
+
+        ' Luego verificamos si el valorCelda no es Nothing y si es una cadena no vacía
+        If Not IsError(valorCelda) And Not IsEmpty(valorCelda) Then
+            ' Si es una cadena, aplicamos Split y obtenemos la primera parte
+            Dim partes() As String
+            partes = Split(CStr(valorCelda), " ")
+            If UBound(partes) >= 0 Then fecha = partes(0) Else fecha = "Formato inesperado"
+        Else
+            fecha = "Sin fecha"
+        End If
+
+        Debug.Print fecha
+    End If
+
     Set wsTemplate = ThisWorkbook.Sheets("answer template")
 
     ' Crear un nuevo libro para los resultados
@@ -55,7 +90,7 @@ Sub GenerarInformeConID()
 
     ' ##### Acciones en la hoja de Resumen #####
     
-    CrearGraficoApilado wsResumen
+    CrearGraficoApilado wsResumen, nombreUsuario, fecha
     CrearGraficoBarrasKiller wsResumen
 
     filaActualResumen = filaActualResumen + 20 ' simulamos que se coloca el gráfico
@@ -145,17 +180,7 @@ Sub GenerarInformeConID()
 
     ' ##### Guardar archivo resultante #####
     
-    Dim nombreUsuario As String
 
-    Dim celdaNombreApellidos As Range
-    Set celdaNombreApellidos = wsOriginalData.Rows(1).Find("Nombre y Apellidos")
-
-    If celdaNombreApellidos Is Nothing Then
-        ' Si no se encuentra la columna, asigna el ID del usuario como nombre
-        nombreUsuario = "ID-" & CStr(idUsuario)
-    Else
-        nombreUsuario = wsOriginalData.Cells(filaID, celdaNombreApellidos.Column).Value
-    End If
 
     Dim rutaArchivoFinal As String
 
@@ -167,9 +192,9 @@ Sub GenerarInformeConID()
     MsgBox "Informe generado con éxito en: " & rutaArchivoFinal, vbInformation
 End Sub
 
-Sub CrearGraficoApilado(wsResumen As Worksheet)
+Sub CrearGraficoApilado(wsResumen As Worksheet, nombreUsuario As String, fecha As String)
     ' Asumiendo que wsResumen es la hoja de trabajo pasada como parámetro
-    
+    Debug.Print "Nombre usuario: "; nombreUsuario ' Imprime
     ' Eliminar cualquier gráfico existente en wsResumen
     Dim chtObj As ChartObject
     For Each chtObj In wsResumen.ChartObjects
@@ -199,7 +224,7 @@ Sub CrearGraficoApilado(wsResumen As Worksheet)
 
         ' Añadir título y personalizar el gráfico
         .HasTitle = True
-        .ChartTitle.Text = "RESUMEN TEST SQL"
+        .ChartTitle.Text = "Test SQL - " + nombreUsuario + " (" + fecha + ")"
         .Axes(xlCategory, xlPrimary).HasTitle = False ' Ocultar título del eje X
         .Axes(xlValue, xlPrimary).HasTitle = False ' Ocultar título del eje Y
         .Legend.Position = xlLegendPositionTop ' Mover leyenda arriba
@@ -318,8 +343,8 @@ Sub CrearGraficoBarrasKiller(wsResumen As Worksheet)
         ' Añadir título y personalizar el gráfico
         .HasTitle = True
         .ChartTitle.Text = "Número de Killer Answers"
-        .Axes(xlCategory, xlPrimary).HasTitle = True
-        .Axes(xlCategory, xlPrimary).AxisTitle.Text = "Dificultad"
+        ' .Axes(xlCategory, xlPrimary).HasTitle = True
+        ' .Axes(xlCategory, xlPrimary).AxisTitle.Text = "Dificultad"
         .Axes(xlValue, xlPrimary).HasTitle = True
         .Axes(xlValue, xlPrimary).AxisTitle.Text = "Cantidad"
         
@@ -353,16 +378,16 @@ Function CalcularTotalKiller(wsTemplate As Worksheet, nivel As Variant) As Integ
 
     For i = 2 To lastRow
         questionCode = wsTemplate.Cells(i, "C").Value
-        Debug.Print "Question Code: "; questionCode ' Imprime el código de la pregunta
+        ' Debug.Print "Question Code: "; questionCode ' Imprime el código de la pregunta
         If InStr(questionCode, ".") > 0 Then
             questionCode = Split(questionCode, ".")(0)
         End If
 
         questionLevel = wsTemplate.Cells(i, "D").Value
-        Debug.Print "Question Level: "; questionLevel ' Imprime el nivel de la pregunta
+        ' Debug.Print "Question Level: "; questionLevel ' Imprime el nivel de la pregunta
         isKiller = Val(wsTemplate.Cells(i, "F").Value)
 
-        Debug.Print "Is Killer: "; isKiller ' Imprime si es killer
+        ' Debug.Print "Is Killer: "; isKiller ' Imprime si es killer
 
         If IsError(isKiller) Then
             MsgBox "La celda F" & i & " no contiene un número válido."
