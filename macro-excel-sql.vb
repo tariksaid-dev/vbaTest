@@ -98,12 +98,31 @@ Sub GenerarInformeConID()
     ' ####### Agregar el cuadro resumen #######
     filaActualResumen = filaActualResumen + 2 ' Fila en blanco de espacio entre el gráfico y el cuadro resumen
 
-    wsResumen.Cells(filaActualResumen, 5).Value = "Puntuación final"
-    wsResumen.Cells(filaActualResumen, 6).Value = "100%" ' ! HARDCODED
+    With wsResumen.Cells(filaActualResumen, 5)
+      .Value = "Puntuación final"
+      .Interior.Color = RGB(203, 213, 225)
+    End With
+
+    With wsResumen.Cells(filaActualResumen, 6)
+      .Value = "100%"
+      .Interior.Color = RGB(15, 23, 42)
+      .Font.Color = RGB(255, 255, 255)
+      .Font.Bold = True
+    End With
 
     filaActualResumen = filaActualResumen + 1
-    wsResumen.Cells(filaActualResumen, 5).Value = "Nivel"
-    wsResumen.Cells(filaActualResumen, 6).Value = "3 - Avanzado" ' ! HARDCODED
+
+    With wsResumen.Cells(filaActualResumen, 5)
+      .Value = "Nivel"
+      .Interior.Color = RGB(203, 213, 225)
+    End With
+
+    With wsResumen.Cells(filaActualResumen, 6)
+      .Value = "3 - Avanzado"
+      .Interior.Color = RGB(15, 23, 42)
+      .Font.Color = RGB(255, 255, 255)
+      .Font.Bold = True
+    End With
 
     ' ####### Rellenar tabla #######
     filaActualResumen = filaActualResumen + 2 ' Fila en blanco de espacio entre el cuadro resumen y la tabla
@@ -117,7 +136,12 @@ Sub GenerarInformeConID()
     ' Insertar títulos de la cabecera
     
     For i = LBound(cabeceraResumen) To UBound(cabeceraResumen)
-        wsResumen.Cells(filaActualResumen, i + 2).Value = cabeceraResumen(i)
+      With wsResumen.Cells(filaActualResumen, i + 2)
+        .Value = cabeceraResumen(i)
+        .Interior.Color = RGB(0, 112, 192)
+        .Font.Color = RGB(255, 255, 255)
+        .Font.Bold = True
+      End With
     Next i
     
     filaActualResumen = filaActualResumen + 1
