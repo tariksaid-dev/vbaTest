@@ -104,7 +104,7 @@ Sub GenerarInformeConID()
     End With
 
     With wsResumen.Cells(filaActualResumen, 6)
-      .Value = "100%"
+      .Value = "-"
       .Interior.Color = RGB(15, 23, 42)
       .Font.Color = RGB(255, 255, 255)
       .Font.Bold = True
@@ -118,7 +118,7 @@ Sub GenerarInformeConID()
     End With
 
     With wsResumen.Cells(filaActualResumen, 6)
-      .Value = "3 - Avanzado"
+      .Value = "-"
       .Interior.Color = RGB(15, 23, 42)
       .Font.Color = RGB(255, 255, 255)
       .Font.Bold = True
@@ -216,55 +216,6 @@ Sub GenerarInformeConID()
     MsgBox "Informe generado con éxito en: " & rutaArchivoFinal, vbInformation
 End Sub
 
-Sub CrearGraficoApilado(wsResumen As Worksheet, nombreUsuario As String, fecha As String)
-    ' Asumiendo que wsResumen es la hoja de trabajo pasada como parámetro
-    Debug.Print "Nombre usuario: "; nombreUsuario ' Imprime
-    ' Eliminar cualquier gráfico existente en wsResumen
-    Dim chtObj As ChartObject
-    For Each chtObj In wsResumen.ChartObjects
-        chtObj.Delete
-    Next chtObj
-
-    ' Añadir el gráfico y configurarlo
-    Set chtObj = wsResumen.ChartObjects.Add(Left:=10, Width:=375, Top:=10, Height:=300)
-    With chtObj.Chart
-        .ChartType = xlColumnStacked
-
-        ' Establecer rango de datos y aplicar a las series del gráfico
-        .SeriesCollection.NewSeries
-        .SeriesCollection(1).Name = "Aciertos"
-        .SeriesCollection(1).Values = wsResumen.Range("D26:D28")
-        .SeriesCollection(1).XValues = wsResumen.Range("B26:B28")
-        
-        .SeriesCollection.NewSeries
-        .SeriesCollection(2).Name = "Errores"
-        .SeriesCollection(2).Values = wsResumen.Range("E26:E28")
-
-        ' Añadir las etiquetas de datos
-        .SeriesCollection(1).ApplyDataLabels
-        .SeriesCollection(1).DataLabels.ShowValue = True
-        .SeriesCollection(2).ApplyDataLabels
-        .SeriesCollection(2).DataLabels.ShowValue = True
-
-        ' Añadir título y personalizar el gráfico
-        .HasTitle = True
-        .ChartTitle.Text = "Test SQL - " + nombreUsuario + " (" + fecha + ")"
-        .Axes(xlCategory, xlPrimary).HasTitle = False ' Ocultar título del eje X
-        .Axes(xlValue, xlPrimary).HasTitle = False ' Ocultar título del eje Y
-        .Legend.Position = xlLegendPositionTop ' Mover leyenda arriba
-
-        ' Opciones de formato adicionales
-        .SeriesCollection(1).Format.Fill.ForeColor.RGB = RGB(146, 208, 80) ' Verde para aciertos
-        .SeriesCollection(2).Format.Fill.ForeColor.RGB = RGB(192, 0, 0) ' Rojo para errores
-    End With
-
-    ' Ajustar tamaño de la fuente del título del gráfico
-    With chtObj.Chart.ChartTitle.Font
-        .Size = 14
-        .Bold = True
-    End With
-End Sub
-
 Function GuardarArchivoResultado(wbNuevo As Workbook, rutaBase As String, nombreUsuario As String) As String
 
     Dim nombreArchivo As String
@@ -336,9 +287,69 @@ Function RellenarHojaPreguntasRespuestas(wsOriginalData As Worksheet, wsTemplate
 
 End Function
 
+Sub CrearGraficoApilado(wsResumen As Worksheet, nombreUsuario As String, fecha As String)
+    ' Eliminar cualquier gráfico existente en wsResumen
+    Dim chtObj As ChartObject
+    For Each chtObj In wsResumen.ChartObjects
+        chtObj.Delete
+    Next chtObj
+
+    ' Añadir el gráfico y configurarlo
+    Set chtObj = wsResumen.ChartObjects.Add(Left:=10, Width:=300, Top:=10, Height:=250)
+    With chtObj.Chart
+        .ChartType = xlColumnStacked
+        .HasTitle = True
+        .ChartTitle.Text = "Test SQL - " & nombreUsuario & " (" & fecha & ")"
+        .Axes(xlCategory, xlPrimary).HasTitle = False ' Ocultar título del eje X
+        .Axes(xlValue, xlPrimary).HasTitle = False ' Ocultar título del eje Y
+        .Legend.Position = xlLegendPositionTop ' Mover leyenda arriba
+        .HasAxis(xlCategory, xlPrimary) = True
+        .HasAxis(xlValue, xlPrimary) = False ' No mostrar el eje Y y sus medidas
+
+        
+        ' Quitar líneas de cuadrícula del eje X (aunque generalmente no hay, por si acaso)
+        .Axes(xlCategory).MajorGridlines.Format.Line.Visible = msoFalse
+        ' Quitar líneas de cuadrícula del eje Y
+        .Axes(xlValue).MajorGridlines.Format.Line.Visible = msoFalse
+
+        ' Configuración común para todas las series
+        Dim serie As Series
+        Set serie = .SeriesCollection.NewSeries
+        With serie
+            .Name = "Aciertos"
+            .Values = wsResumen.Range("D26:D28")
+            .XValues = wsResumen.Range("B26:B28")
+            .ApplyDataLabels
+            With .DataLabels
+                .ShowValue = True
+                .Font.Color = RGB(255, 255, 255) ' Texto blanco
+                .Font.Bold = True
+            End With
+            .Format.Fill.ForeColor.RGB = RGB(112, 173, 71) ' Verde para aciertos
+        End With
+
+        Set serie = .SeriesCollection.NewSeries
+        With serie
+            .Name = "Errores"
+            .Values = wsResumen.Range("E26:E28")
+            .ApplyDataLabels
+            With .DataLabels
+                .ShowValue = True
+                .Font.Color = RGB(255, 255, 255) ' Texto blanco
+                .Font.Bold = True
+            End With
+            .Format.Fill.ForeColor.RGB = RGB(192, 0, 0) ' Rojo para errores
+        End With
+
+        ' Opciones de formato adicionales para el gráfico
+        With .ChartTitle.Font
+            .Size = 18
+            .Bold = True
+        End With
+    End With
+End Sub
+
 Sub CrearGraficoBarrasKiller(wsResumen As Worksheet)
-    ' Asumiendo que wsResumen es la hoja de trabajo pasada como parámetro
-    
     ' Eliminar cualquier gráfico existente que se llame "GraficoKiller"
     Dim graficoExistente As ChartObject
     For Each graficoExistente In wsResumen.ChartObjects
@@ -349,39 +360,46 @@ Sub CrearGraficoBarrasKiller(wsResumen As Worksheet)
 
     ' Añadir el gráfico de columnas y configurarlo
     Dim chtObj As ChartObject
-    Set chtObj = wsResumen.ChartObjects.Add(Left:=400, Width:=375, Top:=10, Height:=300)
-    chtObj.Name = "GraficoKiller" ' Asignar un nombre al gráfico para poder referenciarlo luego
+    Set chtObj = wsResumen.ChartObjects.Add(Left:=400, Width:=300, Top:=10, Height:=250)
+    chtObj.Name = "GraficoKiller"
     With chtObj.Chart
         .ChartType = xlColumnClustered ' Gráfico de columnas agrupadas
-        
-        ' Establecer rango de datos para las "Killer Answers"
-        .SeriesCollection.NewSeries
-        .SeriesCollection(1).Name = "Killer Answers"
-        .SeriesCollection(1).Values = wsResumen.Range("H26:H28")
-        .SeriesCollection(1).XValues = wsResumen.Range("B26:B28")
-
-        ' Añadir las etiquetas de datos
-        .SeriesCollection(1).ApplyDataLabels
-        .SeriesCollection(1).DataLabels.ShowValue = True
-
-        ' Añadir título y personalizar el gráfico
         .HasTitle = True
         .ChartTitle.Text = "Número de Killer Answers"
-        ' .Axes(xlCategory, xlPrimary).HasTitle = True
-        ' .Axes(xlCategory, xlPrimary).AxisTitle.Text = "Dificultad"
         .Axes(xlValue, xlPrimary).HasTitle = True
         .Axes(xlValue, xlPrimary).AxisTitle.Text = "Cantidad"
-        
-        ' Personalizar colores de las series
-        .SeriesCollection(1).Format.Fill.ForeColor.RGB = RGB(79, 129, 189) ' Azul para "Killer Answers"
-        
         .Legend.Position = xlLegendPositionTop ' Mover leyenda arriba
-    End With
+        ' Configuración para eliminar eje Y y líneas de cuadrícula
+        .HasAxis(xlCategory, xlPrimary) = True
+        .HasAxis(xlValue, xlPrimary) = True
 
-    ' Ajustar tamaño de la fuente del título del gráfico
-    With chtObj.Chart.ChartTitle.Font
-        .Size = 14
-        .Bold = True
+        ' .Axes(xlCategory).MajorGridlines.Format.Line.Visible = msoFalse
+        ' Quitar líneas de cuadrícula del eje Y
+        ' .Axes(xlValue).MajorGridlines.Format.Line.Visible = msoFalse
+
+        
+        ' Configurar serie de datos en una operación con With
+        Dim serie As Series
+        Set serie = .SeriesCollection.NewSeries
+
+        With serie
+            .Name = "Killer Answers"
+            .Values = wsResumen.Range("H26:H28")
+            .XValues = wsResumen.Range("B26:B28")
+            .ApplyDataLabels
+            With .DataLabels
+                .ShowValue = True
+                .Font.Color = RGB(255, 255, 255) ' Texto blanco
+                .Font.Bold = True 'texto blanco para mejor contraste
+            End With
+            .Format.Fill.ForeColor.RGB = RGB(79, 129, 189) ' Azul para "Killer Answers"
+        End With
+
+        ' Ajustes adicionales del gráfico
+        With .ChartTitle.Font
+            .Size = 18
+            .Bold = True
+        End With
     End With
 End Sub
 
